@@ -1,12 +1,19 @@
 import axios from 'axios';
 import type { Article, User } from '../types';
 
-// Use environment variable for API URL, fallback to localhost for development
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const client = axios.create({
   baseURL: `${API_BASE_URL}/api`,
   withCredentials: true,
+});
+
+client.interceptors.request.use((config) => {
+  const token = localStorage.getItem('auth_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
 });
 
 export const api = {

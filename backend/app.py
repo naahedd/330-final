@@ -4,6 +4,8 @@ from authlib.integrations.flask_client import OAuth
 from models import db, User, Article, UserInteraction
 from datetime import datetime
 import os
+import jwt
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 CORS(app, 
@@ -25,6 +27,8 @@ app.config['SESSION_COOKIE_SECURE'] = False
 app.config['FRONTEND_URL'] = os.environ.get('FRONTEND_URL', 'http://localhost:5173')
 app.config['GOOGLE_CLIENT_ID'] = os.environ.get('GOOGLE_CLIENT_ID')
 app.config['GOOGLE_CLIENT_SECRET'] = os.environ.get('GOOGLE_CLIENT_SECRET')
+app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', app.config['SECRET_KEY'])
+
 
 oauth = OAuth(app)
 oauth.register(
@@ -41,10 +45,36 @@ with app.app_context():
     db.create_all()
 
 
+
+def create_token(user_id):
+    """Create JWT token"""
+    payload = {
+        'user_id': user_id,
+        'exp': datetime.utcnow() + timedelta(days=7)
+    }
+    return jwt.encode(payload, app.config['JWT_SECRET_KEY'], algorithm='HS256')
+
+def verify_token(token):
+    """Verify JWT token"""
+    try:
+        payload = jwt.decode(token, app.config['JWT_SECRET_KEY'], algorithms=['HS256'])
+        return payload['user_id']
+    except:
+        return None
+    
+
+
 def get_current_user():
-    user_id = session.get('user_id')
+    """Get user from JWT token in Authorization header"""
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return None
+    
+    token = auth_header.split(' ')[1]
+    user_id = verify_token(token)
     if not user_id:
         return None
+    
     return User.query.get(user_id)
 
 
@@ -58,7 +88,6 @@ def login():
     return oauth.google.authorize_redirect(redirect_uri)
 
 
-@app.route('/api/auth/callback', methods=['GET'])
 @app.route('/api/auth/callback', methods=['GET'])
 def auth_callback():
     try:
@@ -86,11 +115,10 @@ def auth_callback():
         db.session.add(user)
         db.session.commit()
 
-    session['user_id'] = user.id
-    session['user_email'] = user.email
-    session['user_name'] = user.username
-
-    return redirect(app.config['FRONTEND_URL'])
+    jwt_token = create_token(user.id)
+    
+    frontend_url = app.config['FRONTEND_URL']
+    return redirect(f'{frontend_url}?token={jwt_token}')
 
 
 @app.route('/api/auth/me', methods=['GET'])

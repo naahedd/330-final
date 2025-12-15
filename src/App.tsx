@@ -23,15 +23,25 @@ function App() {
   const initialLoad = useRef(false);
 
   useEffect(() => {
-    const loadUser = async () => {
-      const currentUser = await api.getCurrentUser();
-      if (currentUser) {
-        setUser(currentUser);
-      }
-    };
+  const loadUser = async () => {
+    // Check for token in URL (from OAuth callback)
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    
+    if (token) {
+      // Store token in localStorage
+      localStorage.setItem('auth_token', token);
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+    
+    const currentUser = await api.getCurrentUser();
+    if (currentUser) {
+      setUser(currentUser);
+    }
+  };
 
-    loadUser();
-  }, []);
+  loadUser();
+}, []);
 
   const loadArticles = useCallback(async (isSearch: boolean = false, query?: string) => {
     setLoading(true);
@@ -146,11 +156,12 @@ function App() {
 
 
   const handleLogout = async () => {
-    await api.logout();
-    setUser(null);
-    setSavedArticles([]);
-    setLikedIds(new Set());
-  };
+  await api.logout();
+  localStorage.removeItem('auth_token');  // Add this line
+  setUser(null);
+  setSavedArticles([]);
+  setLikedIds(new Set());
+};
 
   const handleLikeChange = (articleId: string, liked: boolean, article: Article) => {
     setLikedIds((prev) => {
