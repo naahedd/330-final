@@ -1,8 +1,11 @@
 import axios from 'axios';
 import type { Article, User } from '../types';
 
+// Use environment variable for API URL, fallback to localhost for development
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 const client = axios.create({
-  baseURL: '/api',
+  baseURL: `${API_BASE_URL}/api`,
   withCredentials: true,
 });
 
