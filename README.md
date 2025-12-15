@@ -17,8 +17,8 @@ pip install -r requirements.txt
 
 3) Configure Google OAuth (values from the console screenshot)  
 ```
-export GOOGLE_CLIENT_ID="1093329500570-cdi0ljj638umqfcfgs3sh3ibs8uinumv.apps.googleusercontent.com"
-export GOOGLE_CLIENT_SECRET="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"
+export GOOGLE_CLIENT_ID=""
+export GOOGLE_CLIENT_SECRET=""
 export FRONTEND_URL="http://localhost:5173"  # optional override
 export SECRET_KEY="change-me"
 ```
