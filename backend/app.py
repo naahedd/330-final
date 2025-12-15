@@ -6,8 +6,12 @@ from datetime import datetime
 import os
 
 app = Flask(__name__)
-CORS(app, supports_credentials=True)
-
+CORS(app, 
+     supports_credentials=True,
+     origins=[
+         'http://localhost:5173',
+         'https://330-final.vercel.app'
+     ])
 from dotenv import load_dotenv
 import os
 
@@ -18,7 +22,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'change-me'
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['SESSION_COOKIE_SECURE'] = False  
-app.config['FRONTEND_URL'] = 'http://localhost:5173'
+app.config['FRONTEND_URL'] = os.environ.get('FRONTEND_URL', 'http://localhost:5173')
 app.config['GOOGLE_CLIENT_ID'] = os.environ.get('GOOGLE_CLIENT_ID')
 app.config['GOOGLE_CLIENT_SECRET'] = os.environ.get('GOOGLE_CLIENT_SECRET')
 
