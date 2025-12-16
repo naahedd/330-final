@@ -24,7 +24,6 @@ function App() {
 
   useEffect(() => {
   const loadUser = async () => {
-    // Check for token in URL (from OAuth callback)
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
     
@@ -157,7 +156,7 @@ function App() {
 
   const handleLogout = async () => {
   await api.logout();
-  localStorage.removeItem('auth_token');  // Add this line
+  localStorage.removeItem('auth_token'); 
   setUser(null);
   setSavedArticles([]);
   setLikedIds(new Set());
